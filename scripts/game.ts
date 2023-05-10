@@ -1,11 +1,13 @@
+import type { MoveCommand } from "./types.js"
+
 const players: string[] = []
 let currentPlayer: number
 
 enum States {
-    Wait, Rolled, Choose
+    Wait, Rolled, Choose, NotStarted
 }  
 
-let cState = States.Wait
+let cState = States.NotStarted
 let roll = -1
 
 // colors -> startfield nummer
@@ -15,7 +17,8 @@ const colorOptions: Record<string, number> = {"red": 0, "blue": 10, "black": 21,
 const gameState : Record<string, number[]> = {}
 const homes : Record<string, boolean[]> = {}
 
-const toHome = (pl: string, ind: number) => pl + "-" + homes[pl][ind]
+const toHome = (pl: string, ind: number) => `home-${pl}-${ind}`
+const toField = (ind : number) => `field-${ind}`
 
 const cp = () => players[currentPlayer]
 
@@ -24,79 +27,135 @@ const changeRoundText = () => {
     txt.innerText = "An der Reihe: " + players[currentPlayer]
 }
 
-const startGame = (playerNum : number) => {
-    const playerOptions = Object.keys(colorOptions)
-    for (let i =0; i < playerNum; i++) {
-        players.push(playerOptions[i])
-        homes[playerOptions[i]] = [true, true, true, true]
-    }
+const changeRound = () => {
+    currentPlayer++
+    if (currentPlayer >= players.length) 
+        currentPlayer = 0
+    cState = States.Wait
+    roll = -1
+    changeRoundText()
+}
 
+const startGame = (playerNum : number) => {
+    if (cState !== States.NotStarted) return null
+    if (playerNum < 2 || playerNum > 4) return null
+    const playerOptions = Object.keys(colorOptions)
+    const setHomes : MoveCommand[] = []
+    for (let i = 0; i < playerNum; i++) {
+        const pCol = playerOptions[i]
+        players.push(pCol)
+        gameState[pCol] = []
+        homes[pCol] = [true, true, true, true]
+        for (let j = 0; j < 4; j++) {
+            setHomes.push({
+                from: toHome(pCol, j), 
+                to: toHome(pCol, j), 
+                item: pCol
+            })
+        }
+    }
+    cState = States.Wait
     currentPlayer = 0
     changeRoundText()
+    return setHomes
+}
+
+const canPlayerMove = () => {
+    const allHome = homes[cp()].every(x => x)
+    return !allHome || roll == 6 
 }
 
 const rolled = () => {
     if (cState !== States.Wait) 
-        return { num: null, from: null, to: null };
+        return null;
     
     roll = Math.floor(Math.random() * 6) + 1;
+    cState = States.Rolled
     return roll
 }
 
 const canMove = (index: number) => {
-    if (gameState[cp()].indexOf(index) === -1) return false
-    const cc = gameState[cp()].some(x => index + roll === x)
+    const cc = gameState[cp()].some(x => index + roll === x || index == x)
     if (cc) return false
+    if (cState !== States.Rolled) return false
     return true
 }
 
-const canMoveFromHome = (color: string) => {
-    if (roll !== 6) return false
+const canMoveFromHome = (color: string, index : number) => {
     const infront = gameState[color].some(p => p === colorOptions[color])
-    if (infront) return false
+    if (cState !== States.Rolled) return false
     if (color !== cp()) return false
+    if (roll !== 6) return false
+    if (infront) return false
+    if (!homes[index]) return false
     return true
 }
 
-const move = (index : number, color = "") => {
-    let canContinue : boolean
-    if (color === "") canContinue = canMove(index)
-    else canContinue = canMoveFromHome(color)
-
-    if (!canContinue) return null
+const move = (index : number) : MoveCommand[] | null => {
+    if (!canMove(index)) return null
 
     const np = index + roll
-    let rm: string | null = null
-    let home: string | null = null
-    let col: string | null = null
+    const p = cp()
+    const oldIndex = gameState[p].indexOf(index)
+    gameState[p][oldIndex] = np
 
     for (const key in gameState) {
-        if (key === cp()) continue
+        if (key === p) 
+            continue
         for (let i = 0; i < gameState[key].length; i++) {
             if (gameState[key][i] === np) {
-                rm = `field-${gameState[key][i]}`
-                col = key
                 gameState[key].splice(i, 1)
                 const hp = homes[key].indexOf(false)
                 homes[key][hp] = true
-                home = `home-${key}-${hp}`
-                break
+
+                return [
+                    {from: toField(np), to: toHome(key, hp), item: key},
+                    {from: toField(index), to: toField(np), item: p}
+                ]
             }
         }
     }
 
-    if (rm === null) {
-        return [{from: index, to: np, item: cp()}]
-    } else {
-        return [
-            {from: np, to: home, item: col},
-            {from: index, to: np, item: cp()}
-        ]
+    return [
+        {from: toField(index), to: toField(np), item: p}
+    ]
+}
+
+const MoveFromHome = (index : number, color : string) => {
+    if (!canMoveFromHome(color, index))
+        return null
+    
+    homes[color][index] = false
+    const np = colorOptions[color]
+    gameState[color].push(np)
+
+    for (let key in gameState) {
+        if (key === color) 
+            continue
+        for (let i = 0; i < gameState[key].length; i++) {
+            if (gameState[key][i] === np) {
+                gameState[key].splice(i, 1)
+                const hp = homes[key].indexOf(false)
+                homes[key][hp] = true
+
+                return [
+                    {from: toField(np), to: toHome(key, hp), item: key},
+                    {from: toHome(color, index), to: toField(np), item: color}
+                ]
+            }
+        }
     }
+
+    return [
+        {from: toHome(color, index), to: toField(np), item: color},
+    ]
 }
 
 export {
     startGame,
     rolled,
-    move
+    move,
+    changeRound,
+    MoveFromHome,
+    canPlayerMove
 }

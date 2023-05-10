@@ -88,10 +88,7 @@ const colors: Record<string, number> = {"red": 0, "blue": 0, "black": 0, "green"
 
 const genHomeCols = (color : string) => {
     const el = document.createElement("div")
-    el.classList.add("playable", "home", "mv-field")
-    const e2 = document.createElement("div")
-    e2.classList.add("circle")
-    el.appendChild(e2)
+    el.classList.add("playable", "home")
     el.id = `home-${color}-${colors[color]}`
     colors[color]++
     return el

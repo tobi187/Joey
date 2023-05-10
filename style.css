@@ -1,0 +1,66 @@
+.grid-container {
+    display: grid;
+    height: 100vh;
+    grid-template-columns: repeat(11, 4vmax);
+    grid-template-rows: repeat(11, 4vmax);
+}
+
+.grid-container-container {
+    display: flex;
+    justify-content: center;
+}
+
+.playable {
+    background-color: darkkhaki;
+    height: 100%;
+    width: 100%;
+    border: 1px solid black;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.irrelevant {
+    height: 100%;
+    width: 100%;
+}
+
+.circle {
+    background: red;
+    border-radius: 50%;
+    width: 50%;
+    height: 50%;
+    padding: 10%;
+}
+
+.red {
+    background: red;
+    border-radius: 50%;
+    width: 50%;
+    height: 50%;
+    padding: 10%;
+}
+
+.blue {
+    background: blue;
+    border-radius: 50%;
+    width: 50%;
+    height: 50%;
+    padding: 10%;
+}
+
+.green {
+    background: green;
+    border-radius: 50%;
+    width: 50%;
+    height: 50%;
+    padding: 10%;
+}
+
+.black {
+    background: black;
+    border-radius: 50%;
+    width: 50%;
+    height: 50%;
+    padding: 10%;
+}

@@ -1,13 +1,3 @@
-const createCol = (isPlayable) => {
-    const div = document.createElement('div');
-    if (isPlayable) {
-        div.classList.add('playable');
-    }
-    else {
-        div.classList.add('irrelevant');
-    }
-    return div;
-};
 const genCol = (index, start = false) => {
     const el = document.createElement("div");
     el.classList.add("playable", "mv-field");

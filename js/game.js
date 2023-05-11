@@ -9,15 +9,25 @@ var States;
 })(States || (States = {}));
 let cState = States.NotStarted;
 let roll = -1;
-const colorOptions = { "red": 0, "blue": 10, "black": 21, "green": 31 };
+let rollAmount = 3;
+const colorOptions = {
+    red: 0,
+    blue: 10,
+    black: 21,
+    green: 31,
+};
 const gameState = {};
 const homes = {};
 const toHome = (pl, ind) => `home-${pl}-${ind}`;
 const toField = (ind) => `field-${ind}`;
 const cp = () => players[currentPlayer];
 const changeRoundText = () => {
-    const txt = document.getElementById("p-round");
-    txt.innerText = "An der Reihe: " + players[currentPlayer];
+    const txt = document.getElementById('p-round');
+    txt.innerText = 'An der Reihe: ' + players[currentPlayer];
+};
+const resetDice = () => {
+    const el = document.getElementById('die1');
+    el.textContent = '0';
 };
 const changeRound = () => {
     currentPlayer++;
@@ -25,6 +35,11 @@ const changeRound = () => {
         currentPlayer = 0;
     cState = States.Wait;
     roll = -1;
+    if (homes[cp()].every((x) => x))
+        rollAmount = 3;
+    else
+        rollAmount = 1;
+    resetDice();
     changeRoundText();
 };
 const startGame = (playerNum) => {
@@ -43,7 +58,7 @@ const startGame = (playerNum) => {
             setHomes.push({
                 from: toHome(pCol, j),
                 to: toHome(pCol, j),
-                item: pCol
+                item: pCol,
             });
         }
     }
@@ -53,26 +68,31 @@ const startGame = (playerNum) => {
     return setHomes;
 };
 const canPlayerMove = () => {
-    const allHome = homes[cp()].every(x => x);
+    const allHome = homes[cp()].every((x) => x);
     return !allHome || roll == 6;
 };
 const rolled = () => {
     if (cState !== States.Wait)
         return null;
+    rollAmount--;
     roll = Math.floor(Math.random() * 6) + 1;
-    cState = States.Rolled;
+    if (rollAmount === 0 || roll === 6)
+        cState = States.Rolled;
     return roll;
 };
 const canMove = (index) => {
-    const cc = gameState[cp()].some(x => index + roll === x || index == x);
+    const cc = gameState[cp()].some((x) => index + roll === x);
+    const hasOne = gameState[cp()].some((x) => index === x);
     if (cc)
         return false;
     if (cState !== States.Rolled)
         return false;
+    if (!hasOne)
+        return false;
     return true;
 };
 const canMoveFromHome = (color, index) => {
-    const infront = gameState[color].some(p => p === colorOptions[color]);
+    const infront = gameState[color].some((p) => p === colorOptions[color]);
     if (cState !== States.Rolled)
         return false;
     if (color !== cp())
@@ -81,14 +101,17 @@ const canMoveFromHome = (color, index) => {
         return false;
     if (infront)
         return false;
-    if (!homes[index])
+    if (!homes[color][index])
         return false;
     return true;
 };
 const move = (index) => {
     if (!canMove(index))
         return null;
-    const np = index + roll;
+    let np = index + roll;
+    if (np > 40) {
+        np = np - 41;
+    }
     const p = cp();
     const oldIndex = gameState[p].indexOf(index);
     gameState[p][oldIndex] = np;
@@ -102,14 +125,12 @@ const move = (index) => {
                 homes[key][hp] = true;
                 return [
                     { from: toField(np), to: toHome(key, hp), item: key },
-                    { from: toField(index), to: toField(np), item: p }
+                    { from: toField(index), to: toField(np), item: p },
                 ];
             }
         }
     }
-    return [
-        { from: toField(index), to: toField(np), item: p }
-    ];
+    return [{ from: toField(index), to: toField(np), item: p }];
 };
 const MoveFromHome = (index, color) => {
     if (!canMoveFromHome(color, index))
@@ -127,14 +148,16 @@ const MoveFromHome = (index, color) => {
                 homes[key][hp] = true;
                 return [
                     { from: toField(np), to: toHome(key, hp), item: key },
-                    { from: toHome(color, index), to: toField(np), item: color }
+                    {
+                        from: toHome(color, index),
+                        to: toField(np),
+                        item: color,
+                    },
                 ];
             }
         }
     }
-    return [
-        { from: toHome(color, index), to: toField(np), item: color },
-    ];
+    return [{ from: toHome(color, index), to: toField(np), item: color }];
 };
 export { startGame, rolled, move, changeRound, MoveFromHome, canPlayerMove };
 //# sourceMappingURL=game.js.map

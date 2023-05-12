@@ -15,6 +15,11 @@ const startGame = () => {
         el.classList.add(`start-${key}`);
     }
 };
+document.addEventListener("keydown", (ev) => {
+    if (ev.altKey) {
+        game.testState().forEach(execStatement);
+    }
+});
 const roll = () => {
     const n = game.rolled();
     const el = document.getElementById('die1');

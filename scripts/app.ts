@@ -21,6 +21,12 @@ const startGame = () => {
     } 
 }
 
+document.addEventListener("keydown", (ev) => {
+    if ((ev as KeyboardEvent).altKey) {
+        game.testState().forEach(execStatement)
+    }
+})
+
 const roll = () => {
     const n = game.rolled()
     const el = document.getElementById('die1') as HTMLDivElement

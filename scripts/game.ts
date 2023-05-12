@@ -93,6 +93,10 @@ const rolled = () => {
     rollAmount--
     roll = Math.floor(Math.random() * 6) + 1
     if (rollAmount === 0 || roll === 6) cState = States.Rolled
+    if (rollAmount == 0 && !canPlayerMove()) {
+        changeRound()
+        return null
+    }
     return roll
 }
 
@@ -103,6 +107,14 @@ const canMove = (index: number) => {
     if (cState !== States.Rolled) return false
     if (!hasOne) return false
     return true
+}
+
+const testState = () : MoveCommand[] => {
+    homes["red"][1] = false
+    gameState["red"].push(39)
+    return [
+        {from: toHome("red", 1), to: toField(39), item: "red"}
+    ]
 }
 
 const canMoveFromHome = (color: string, index: number) => {
@@ -188,11 +200,11 @@ const canMoveInGoal = (index: number, color : string, nroll: number) => {
     } else {
         hasOne = goals[p][index]
     }
+    if (index + nroll > 3 && index < 10) 
+        return false
     if (!hasOne) return false
     if (cState !== States.Rolled) return false
     if (color !== p) return false
-    if (index + nroll > 3) 
-        return false
     for (let i = index + 1; i < index + nroll + 1; i++) {
         if (goals[i]) return false
     }
@@ -201,18 +213,21 @@ const canMoveInGoal = (index: number, color : string, nroll: number) => {
 
 const MoveFromGoal = (index : number, color : string) => {
     let fixed_roll = -1
+    let cc = colorOptions[color]-1
+    if (cc < 0) cc = 40 // for a
+
     if (index < 10) fixed_roll = roll
-    else fixed_roll = index + roll + (colorOptions[color]-1)
+    else fixed_roll = index + roll - cc
 
     if (!canMoveInGoal(index, color, fixed_roll)) return null
     goals[color][fixed_roll] = true
     if (index < 10) {
         goals[color][index] = false 
-        return [{from: toGoal(color, index), to: toGoal(color, index), item: color}]
+        return [{from: toGoal(color, index), to: toGoal(color, index + fixed_roll-1), item: color}]
     } else {
         const rmIndex = gameState[cp()].indexOf(index)
         gameState[cp()].splice(rmIndex, 1)
-        return [{from: toField(index), to: toGoal(color, index), item: color}]
+        return [{from: toField(index), to: toGoal(color, fixed_roll-1), item: color}]
     }
 }
 
@@ -226,5 +241,6 @@ export {
     MoveFromHome, 
     canPlayerMove, 
     MoveFromGoal, 
-    checkWin 
+    checkWin,
+    testState
 }

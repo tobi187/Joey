@@ -4,8 +4,14 @@ type MoveCommand = {
     item : string
 }
 
+type ApiResponse = {
+    content : string
+    author : string
+}
+
 
 
 export type {
-    MoveCommand
+    MoveCommand,
+    ApiResponse
 }

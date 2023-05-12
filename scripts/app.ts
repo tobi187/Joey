@@ -1,10 +1,21 @@
 import { generateAllCols } from './setup.js'
 import * as game from './game.js'
+import { getQuote } from './api.js';
 import type { MoveCommand } from './types.js'
+
 
 generateAllCols()
 
 const startFields: Record<string, number> = {"red": 0, "blue": 10, "black": 21, "green": 31}
+
+
+const insertQuote =async () => {
+    const quote = await getQuote()
+    const el = document.getElementById("quote-container") as HTMLParagraphElement
+    el.textContent = `${quote.content}, by ${quote.author}`
+}
+insertQuote()
+setInterval(insertQuote, 1000 * 60)
 
 const startGame = () => {
     const playerAmount = document.getElementById(
@@ -14,11 +25,11 @@ const startGame = () => {
     const commands = game.startGame(num)
     if (commands !== null) {
         commands.forEach(execStatement)
+        for (let key in startFields) {
+            const el = document.getElementById(`field-${startFields[key]}`) as HTMLDivElement
+            el.classList.add(`start-${key}`)
+        } 
     }
-    for (let key in startFields) {
-        const el = document.getElementById(`field-${startFields[key]}`) as HTMLDivElement
-        el.classList.add(`start-${key}`)
-    } 
 }
 
 document.addEventListener("keydown", (ev) => {

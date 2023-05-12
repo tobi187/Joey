@@ -1,18 +1,35 @@
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 var _a, _b;
 import { generateAllCols } from './setup.js';
 import * as game from './game.js';
+import { getQuote } from './api.js';
 generateAllCols();
 const startFields = { "red": 0, "blue": 10, "black": 21, "green": 31 };
+const insertQuote = () => __awaiter(void 0, void 0, void 0, function* () {
+    const quote = yield getQuote();
+    const el = document.getElementById("quote-container");
+    el.textContent = `${quote.content}, by ${quote.author}`;
+});
+insertQuote();
+setInterval(insertQuote, 1000 * 60);
 const startGame = () => {
     const playerAmount = document.getElementById('spieler-zahl');
     const num = Number.parseInt(playerAmount.value);
     const commands = game.startGame(num);
     if (commands !== null) {
         commands.forEach(execStatement);
-    }
-    for (let key in startFields) {
-        const el = document.getElementById(`field-${startFields[key]}`);
-        el.classList.add(`start-${key}`);
+        for (let key in startFields) {
+            const el = document.getElementById(`field-${startFields[key]}`);
+            el.classList.add(`start-${key}`);
+        }
     }
 };
 document.addEventListener("keydown", (ev) => {

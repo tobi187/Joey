@@ -1,14 +1,14 @@
-const genCol = (index, start = false) => {
+const genCol = (index, className = "") => {
     const el = document.createElement("div");
     el.classList.add("playable", "mv-field");
-    if (start)
-        el.classList.add("start");
+    if (className !== "")
+        el.classList.add(className);
     el.id = "field-" + index;
     return el;
 };
 const generatePlayCols = (x, y) => {
     if (y == 0 && x == 6)
-        return genCol(0, true);
+        return genCol(0);
     if (y == 1 && x == 6)
         return genCol(1);
     if (y == 2 && x == 6)
@@ -28,7 +28,7 @@ const generatePlayCols = (x, y) => {
     if (y == 5 && x == 10)
         return genCol(9);
     if (y == 6 && x == 10)
-        return genCol(10, true);
+        return genCol(10);
     if (y == 6 && x == 9)
         return genCol(11);
     if (y == 6 && x == 8)
@@ -48,7 +48,7 @@ const generatePlayCols = (x, y) => {
     if (y == 10 && x == 5)
         return genCol(20);
     if (y == 10 && x == 4)
-        return genCol(21, true);
+        return genCol(21);
     if (y == 9 && x == 4)
         return genCol(22);
     if (y == 8 && x == 4)
@@ -68,7 +68,7 @@ const generatePlayCols = (x, y) => {
     if (y == 5 && x == 0)
         return genCol(30);
     if (y == 4 && x == 0)
-        return genCol(31, true);
+        return genCol(31);
     if (y == 4 && x == 1)
         return genCol(32);
     if (y == 4 && x == 2)
@@ -95,6 +95,14 @@ const generatePlayCols = (x, y) => {
         return genHomeCols("black");
     if (y > 8 && x > 8)
         return genHomeCols("blue");
+    if (y == 5 && x > 0 && x < 5)
+        return genGoalCol("green");
+    if (y == 5 && x > 5 && x < 10)
+        return genGoalCol("blue");
+    if (x == 5 && y > 0 && y < 5)
+        return genGoalCol("red");
+    if (x == 5 && y > 5 && y < 10)
+        return genGoalCol("black");
     return null;
 };
 const generateAllCols = () => {
@@ -119,6 +127,17 @@ const genHomeCols = (color) => {
     el.classList.add("playable", "home");
     el.id = `home-${color}-${colors[color]}`;
     colors[color]++;
+    return el;
+};
+const goalColors = { "red": 0, "blue": 3, "black": 3, "green": 0 };
+const genGoalCol = (color) => {
+    const el = document.createElement("div");
+    el.classList.add("goal");
+    el.id = `goal-${color}-${goalColors[color]}`;
+    if (color == "red" || color == "green")
+        goalColors[color]++;
+    else
+        goalColors[color]--;
     return el;
 };
 export { generateAllCols };

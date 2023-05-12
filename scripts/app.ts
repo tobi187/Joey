@@ -4,6 +4,8 @@ import type { MoveCommand } from './types.js'
 
 generateAllCols()
 
+const startFields: Record<string, number> = {"red": 0, "blue": 10, "black": 21, "green": 31}
+
 const startGame = () => {
     const playerAmount = document.getElementById(
         'spieler-zahl'
@@ -13,6 +15,10 @@ const startGame = () => {
     if (commands !== null) {
         commands.forEach(execStatement)
     }
+    for (let key in startFields) {
+        const el = document.getElementById(`field-${startFields[key]}`) as HTMLDivElement
+        el.classList.add(`start-${key}`)
+    } 
 }
 
 const roll = () => {
@@ -38,11 +44,6 @@ function moveHome(this: HTMLElement) {
     if (res !== null) {
         res.forEach(execStatement)
         game.changeRound()
-    } else {
-        // anders lösen
-        if (!game.canPlayerMove()) {
-            game.changeRound()
-        }
     }
 }
 
@@ -53,10 +54,19 @@ function move(this: HTMLElement) {
     if (res !== null) {
         res.forEach(execStatement)
         game.changeRound()
-    } else {
-        if (!game.canPlayerMove()) {
-            game.changeRound()
-        }
+    }
+}
+
+function moveGoal(this : HTMLElement) {
+    const parts = this.id.split("-")
+    const field = Number.parseInt(parts[2])
+    const color = parts[1]
+    const res = game.MoveFromGoal(field, color)
+    if (res !== null) {
+        res.forEach(execStatement)
+    }
+    if (game.checkWin()) {
+        alert(`${color} Player won`)
     }
 }
 
@@ -77,3 +87,6 @@ document
 document
     .querySelectorAll('.home')
     .forEach((el) => (el as HTMLElement).addEventListener('click', moveHome))
+document
+    .querySelectorAll(".goal")
+    .forEach((el) => (el as HTMLElement).addEventListener('click', moveGoal))
